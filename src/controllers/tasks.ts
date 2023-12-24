@@ -1,13 +1,10 @@
-import db from "../database/connectDB.ts";
-import { TaskSchema } from "../schema/task.ts";
 import {ObjectId} from "https://deno.land/x/mongo@v0.30.0/mod.ts";
-
-const tasks = db.collection<TaskSchema>("tasks");
+import { Task } from "../schema/TaskSchema.ts";
 
 export const create = async({request, response}:{request:any;response:any}) => {
     const {name, isCompleted} = await request.body().value;
 
-    const _id = await tasks.insertOne({
+    const _id = await Task.insertMany({
         name,
         isCompleted
       });
@@ -15,8 +12,7 @@ export const create = async({request, response}:{request:any;response:any}) => {
     };
 
     export const getTasks = async ({response}:{response:any}) => {
-    const allTasks = await tasks.find({}).toArray();
-
+    const allTasks = await Task.find({});
     response.status = 200;
     response.body = {tasks:allTasks};
   };
@@ -29,7 +25,7 @@ export const create = async({request, response}:{request:any;response:any}) => {
     response:any;
   }) => {
     const taskId = params.taskId;
-    const task = await tasks.findOne({_id:new ObjectId(taskId)});
+    const task = await Task.findOne({_id:new ObjectId(taskId)});
 
     if(!task){
         response.body = {message: `no task with Id: ${taskId}`};
@@ -50,7 +46,7 @@ export const updateById = async ({
 }) => {
     const taskId = params.taskId;
     const {name, isCompleted} = await request.body().value;
-    const task = await tasks.updateOne({_id:new ObjectId(taskId)},
+    const task = await Task.updateOne({_id:new ObjectId(taskId)},
     {$set:{name:name, isCompleted:isCompleted}});
 
     response.status = 200;
@@ -65,7 +61,7 @@ export const deleteTask = async ({
     response:any;
 }) => {
     const taskId = params.taskId;
-    const task = await tasks.deleteOne({_id:new ObjectId(taskId)});
+    const task = await Task.deleteOne({_id:new ObjectId(taskId)});
     response.status = 200;
     response.body = {message:"Deleted task", task:task};
 };

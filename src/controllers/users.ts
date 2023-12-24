@@ -1,10 +1,8 @@
-import db from "../database/connectDB.ts";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
-import { UserSchema } from "../schema/user.ts";
 import { create } from "https://deno.land/x/djwt@v2.4/mod.ts";
 import { key } from "../utils/apiKey.ts";
 
-const Users = db.collection<UserSchema>("users");
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import { User } from "../schema/Userschema.ts"; 
 
 //create a user
 export const signup = async ({
@@ -19,19 +17,19 @@ export const signup = async ({
     const hashedPassword = await bcrypt.hash(password, salt);
   
     // check if user exists
-    const user = await Users.findOne({ username });
+    const user = await User.findOne({ username });
     if (user) {
       // user exists, send an error message
       response.status = 400;
       response.body = { message: "User exists" };
     } else {
       // user does not exist, create a new user
-      const _id = await Users.insertOne({
+      const UsersResponse = await User.insertMany({
         username,
         password: hashedPassword,
       });
       response.status = 201;
-      response.body = { message: "User created", userId: _id, user: username };
+      response.body = { message: "User created", user: UsersResponse };
     }
   };
   
@@ -47,7 +45,7 @@ export const signin = async ({
   const body = await request.body();
   const { username, password } = await body.value;
 
-  const user = await Users.findOne({ username });
+  const user = await User.findOne({ username });
 
   if (!user) {
     response.body = 404;
